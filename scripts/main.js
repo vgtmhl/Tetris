@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Fetch the grid and the cells, cast NodeList to Array
   const grid = document.querySelector(".grid");
-  let cells = Array.from(document.querySelectorAll(".cell"));
+  let cells = Array.from(document.querySelectorAll(".grid div"));
 
   // Fetch score and start/pause button
   const ScoreDisplay = document.querySelector("#score");
@@ -75,7 +75,94 @@ document.addEventListener("DOMContentLoaded", () => {
     current.forEach((index) => {
       cells[currentPosition + index].classList.remove("tetromino");
     });
-	};
-	
-	
+  };
+
+  // Make the tetrominoes move down every second
+  timeId = setInterval(() => {
+    unDraw();
+    currentPosition += width;
+    draw();
+    freeze();
+  }, 250);
+
+  // Assign functions to keycodes
+  const control = (e) => {
+    switch (e.keyCode) {
+      case 37:
+        moveLeft();
+        break;
+      case 38: //rotate
+        break;
+      case 39:
+        moveRight();
+        break;
+      case 40:
+        speedUp();
+        break;
+      default:
+        break;
+    }
+  };
+  document.addEventListener("keyup", control);
+
+  // Stop the tetraminoes at the game board's bottom
+  const freeze = () => {
+    if (
+      current.some((index) =>
+        cells[currentPosition + index + width].classList.contains("taken")
+      )
+    ) {
+      current.forEach((index) =>
+        cells[currentPosition + index].classList.add("taken")
+      );
+      //start a new tetromino falling
+      rnd = Math.floor(Math.random() * tetrominos.length);
+      current = tetrominos[rnd][currentRotation];
+      currentPosition = 4;
+      draw();
+    }
+  };
+
+  // Movement functions
+  const moveLeft = () => {
+    unDraw();
+    const isAtLeftEdge = current.some(
+      (index) => (currentPosition + index) % width === 0
+    );
+
+    if (!isAtLeftEdge) {
+      currentPosition -= 1;
+    }
+
+    if (
+      current.some((index) =>
+        cells[currentPosition + index].classList.contains("taken")
+      )
+    ) {
+      currentPosition += 1;
+    }
+
+    draw();
+  };
+
+  const moveRight = () => {
+    unDraw();
+    const isAtRightEdge = current.some(
+      (index) => (currentPosition + index) % width === width-1
+    );
+
+    if (!isAtRightEdge) {
+      currentPosition += 1;
+    }
+
+    if (
+      current.some((index) =>
+        cells[currentPosition + index].classList.contains("taken")
+      )
+    ) {
+      currentPosition -= 1;
+    }
+
+    draw();
+  };
 });
