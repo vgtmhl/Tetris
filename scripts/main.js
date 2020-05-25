@@ -1,14 +1,16 @@
 document.addEventListener("DOMContentLoaded", () => {
   // Game constants
   const width = 10;
+  let nextRandom = 0;
+  let timerId;
 
   // Fetch the grid and the cells, cast NodeList to Array
   const grid = document.querySelector(".grid");
   let cells = Array.from(document.querySelectorAll(".grid div"));
 
   // Fetch score and start/pause button
-  const ScoreDisplay = document.querySelector("#score");
-  const StartBtn = document.querySelector("#start-button");
+  const scoreDisplay = document.querySelector("#score");
+  const startBtn = document.querySelector("#start-button");
 
   // Tetrominoes (expressed as what cells are non-empty in a 3x3 / 4x4 grid)
   // Geometrical definition + store them in an array
@@ -77,33 +79,33 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  // Make the tetrominoes move down every second
-  timeId = setInterval(() => {
-    unDraw();
-    currentPosition += width;
-    draw();
-    freeze();
-  }, 250);
-
   // Assign functions to keycodes
   const control = (e) => {
     switch (e.keyCode) {
       case 37:
         moveLeft();
         break;
-      case 38: //rotate
+      case 38:
+        rotate();
         break;
       case 39:
         moveRight();
         break;
       case 40:
-        speedUp();
+        //speedUp();
         break;
       default:
         break;
     }
   };
   document.addEventListener("keyup", control);
+
+  const moveDown = () => {
+    unDraw();
+    currentPosition += width;
+    draw();
+    freeze();
+  };
 
   // Stop the tetraminoes at the game board's bottom
   const freeze = () => {
@@ -116,10 +118,12 @@ document.addEventListener("DOMContentLoaded", () => {
         cells[currentPosition + index].classList.add("taken")
       );
       //start a new tetromino falling
-      rnd = Math.floor(Math.random() * tetrominos.length);
+      rnd = nextRandom;
+      nextRandom = Math.floor(Math.random() * tetrominos.length);
       current = tetrominos[rnd][currentRotation];
       currentPosition = 4;
       draw();
+      displayShape();
     }
   };
 
@@ -148,7 +152,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const moveRight = () => {
     unDraw();
     const isAtRightEdge = current.some(
-      (index) => (currentPosition + index) % width === width-1
+      (index) => (currentPosition + index) % width === width - 1
     );
 
     if (!isAtRightEdge) {
@@ -165,4 +169,56 @@ document.addEventListener("DOMContentLoaded", () => {
 
     draw();
   };
+
+  // Rotate the tetromino
+  const rotate = () => {
+    unDraw();
+    currentRotation++;
+
+    if (currentRotation === current.length) {
+      currentRotation = 0;
+    }
+
+    current = tetrominos[rnd][currentRotation];
+    draw();
+  };
+
+  // Show next-tetromino in mini-grid
+  const displayCells = document.querySelectorAll(".mini-grid div");
+  const displayWidth = 4;
+  let displayIndex = 0;
+
+  // tetraminos without rotatio
+  const upNextTetrominoes = [
+    [1, displayWidth + 1, displayWidth * 2 + 1, 2],
+    [0, displayWidth, displayWidth + 1, displayWidth * 2 + 1],
+    [1, displayWidth, displayWidth + 1, displayWidth + 2],
+    [0, 1, displayWidth, displayWidth + 1],
+    [1, displayWidth + 1, displayWidth * 2 + 1, displayWidth * 3 + 1],
+  ];
+
+  // Display the shape in the minigrid
+  const displayShape = () => {
+    // remove tetramino from grid
+    displayCells.forEach((cell) => {
+      cell.classList.remove("tetromino");
+    });
+
+    upNextTetrominoes[nextRandom].forEach((index) => {
+      displayCells[displayIndex + index].classList.add("tetromino");
+    });
+  };
+
+  // add functionality to start-pause button
+  startBtn.addEventListener("click", () => {
+    if (timerId) {
+      clearInterval(timerId);
+      timerId = null;
+    } else {
+      draw();
+      timerId = setInterval(moveDown, 250);
+      nextRandom = Math.floor(Math.random() * tetrominos.length);
+      displayShape();
+    }
+  });
 });
