@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const width = 10;
   let nextRandom = 0;
   let timerId;
+  let score = 0;
 
   // Fetch the grid and the cells, cast NodeList to Array
   const grid = document.querySelector(".grid");
@@ -124,6 +125,7 @@ document.addEventListener("DOMContentLoaded", () => {
       currentPosition = 4;
       draw();
       displayShape();
+      addScore();
     }
   };
 
@@ -221,4 +223,36 @@ document.addEventListener("DOMContentLoaded", () => {
       displayShape();
     }
   });
+
+  // when one row is completed
+  function addScore() {
+    for (let i = 0; i < 199; i += width) {
+      const row = [
+        i,
+        i + 1,
+        i + 2,
+        i + 3,
+        i + 4,
+        i + 5,
+        i + 6,
+        i + 7,
+        i + 8,
+        i + 9,
+      ];
+
+      if (row.every((index) => cells[index].classList.contains("taken"))) {
+        score += 10;
+        scoreDisplay.innerHTML = score;
+        row.forEach((index) => {
+          cells[index].classList.remove("taken");
+          cells[index].classList.remove("tetromino");
+          cells[index].style.backgroundColor = "";
+        });
+        const cellsRemoved = cells.splice(i, width);
+        cells = cellsRemoved.concat(cells);
+        cells.forEach((cell) => grid.appendChild(cell));
+      }
+    }
+  }
+
 });
